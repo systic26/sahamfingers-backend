@@ -138,9 +138,7 @@ const PrivacyPage = () => (
     <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
       <ShieldCheck className="text-sky-600" /> Privacy Policy
     </h2>
-    <p className="text-gray-600">Berikut versi yang lebih panjang, formal, dan profesional. Siap dipakai langsung di aplikasi Anda.
-
-Data, informasi, dan hasil analisis yang disajikan dalam platform ini disediakan sebagaimana adanya dan sebagaimana tersedia. Seluruh konten ditujukan untuk tujuan edukasi, riset, dan pengembangan wawasan pengguna terkait pasar modal dan instrumen keuangan. Kami tidak memberikan jaminan, baik secara tersurat maupun tersirat, atas keakuratan, kelengkapan, ketepatan waktu, maupun relevansi data yang ditampilkan.
+    <p className="text-gray-600">Data, informasi, dan hasil analisis yang disajikan dalam platform ini disediakan sebagaimana adanya dan sebagaimana tersedia. Seluruh konten ditujukan untuk tujuan edukasi, riset, dan pengembangan wawasan pengguna terkait pasar modal dan instrumen keuangan. Kami tidak memberikan jaminan, baik secara tersurat maupun tersirat, atas keakuratan, kelengkapan, ketepatan waktu, maupun relevansi data yang ditampilkan.
 
 Platform ini tidak dimaksudkan sebagai nasihat investasi, rekomendasi pembelian atau penjualan efek, maupun ajakan dalam bentuk apa pun. Setiap keputusan investasi sepenuhnya menjadi tanggung jawab pengguna. Pengguna disarankan untuk melakukan analisis tambahan dan berkonsultasi dengan penasihat keuangan berlisensi sebelum mengambil keputusan finansial.
 
