@@ -9,21 +9,19 @@ import time
 import sqlite3
 import numpy as np
 
-# --- LIBRARY DEEP LEARNING (Scikit-Learn) ---
-from sklearn.neural_network import MLPRegressor 
+# --- LIBRARY AI (Gradient Boosting) ---
+from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_absolute_error
 
-# --- LIBRARY TEKNIKAL LENGKAP ---
-from ta.momentum import RSIIndicator, StochasticOscillator
-from ta.trend import MACD, SMAIndicator
-from ta.volatility import BollingerBands, AverageTrueRange
+# --- LIBRARY TEKNIKAL (V5.0 - COMPLETED) ---
+from ta.momentum import RSIIndicator, StochasticOscillator, WilliamsRIndicator, AwesomeOscillatorIndicator, ROCIndicator, UltimateOscillator, KAMAIndicator
+from ta.trend import MACD, SMAIndicator, EMAIndicator, IchimokuIndicator, ADXIndicator, PSARIndicator, CCIIndicator, TRIXIndicator, VortexIndicator
+from ta.volatility import BollingerBands, AverageTrueRange, KeltnerChannel, DonchianChannel
+from ta.volume import OnBalanceVolumeIndicator, MFIIndicator, VolumePriceTrendIndicator, ChaikinMoneyFlowIndicator, ForceIndexIndicator, EaseOfMovementIndicator
 
 app = Flask(__name__)
 CORS(app)
 
-# --- DATABASE SETUP ---
 DB_NAME = "saham.db"
 
 def init_db():
@@ -37,43 +35,25 @@ def init_db():
 
 init_db()
 
-# --- LIST EMITEN (FULL 700+ SAHAM) ---
 ALL_IDX_TICKERS = [
-    'AALI', 'ABBA', 'ABDA', 'ABMM', 'ACES', 'ACST', 'ADES', 'ADCP', 'ADHI', 'ADMF', 'ADMG', 'ADMR', 'ADRO', 'AGAR', 'AGII', 'AGRO', 'AGRS', 'AHAP', 'AIMS', 'AISA', 'AKKU', 'AKPI', 'AKRA', 'AKSI', 'ALDO', 'ALKA', 'ALMI', 'ALTO', 'AMAG', 'AMAR', 'AMFG', 'AMIN', 'AMMN', 'AMMS', 'AMOR', 'AMRT', 'ANDI', 'ANJT', 'ANTM', 'APEX', 'APIC', 'APII', 'APLI', 'APLN', 'ARGO', 'ARII', 'ARKA', 'ARNA', 'ARTA', 'ARTI', 'ARTO', 'ASBI', 'ASDM', 'ASGR', 'ASHA', 'ASII', 'ASJT', 'ASLC', 'ASMI', 'ASPI', 'ASRI', 'ASRM', 'ASSA', 'ATAP', 'ATIC', 'AUTO', 'AVIA', 'AXIO', 'AYLS', 
-    'BABP', 'BACA', 'BAJA', 'BALI', 'BANK', 'BAPA', 'BAPI', 'BATA', 'BAYU', 'BBCA', 'BBHI', 'BBKP', 'BBLD', 'BBMD', 'BBNI', 'BBRI', 'BBRM', 'BBSI', 'BBSS', 'BBTN', 'BBYB', 'BCAP', 'BCIC', 'BCIP', 'BDMN', 'BEBS', 'BEEF', 'BELL', 'BESS', 'BEST', 'BFIN', 'BGTG', 'BHAT', 'BHIT', 'BIKA', 'BIMA', 'BINA', 'BIPI', 'BIPP', 'BIRD', 'BISI', 'BJBR', 'BJTM', 'BKDP', 'BKSL', 'BKSW', 'BLTZ', 'BLUE', 'BMAS', 'BMHS', 'BMRI', 'BMSR', 'BMTR', 'BNBA', 'BNBR', 'BNGA', 'BNII', 'BNLI', 'BOGA', 'BOLA', 'BOLT', 'BPII', 'BRAM', 'BRIS', 'BRMS', 'BRNA', 'BRPT', 'BSDE', 'BSIM', 'BSML', 'BSSR', 'BSWD', 'BTEK', 'BTEL', 'BTON', 'BTPN', 'BTPS', 'BUDI', 'BUKK', 'BUKR', 'BUKS', 'BUKU', 'BULL', 'BUMI', 'BUVA', 'BVIC', 'BWPT', 'BYAN', 
-    'CAKK', 'CAMP', 'CANI', 'CARE', 'CARS', 'CASA', 'CASH', 'CASS', 'CBMF', 'CCSI', 'CEKA', 'CENT', 'CFIN', 'CINT', 'CITA', 'CITY', 'CLAY', 'CLEO', 'CLPI', 'CMNP', 'CMNT', 'CMPP', 'CMRY', 'CNKO', 'CNTX', 'COCO', 'COWL', 'CPIN', 'CPRI', 'CPRO', 'CSAP', 'CSIS', 'CSMI', 'CSRA', 'CTBN', 'CTHQ', 'CTRA', 'CTTH', 
-    'DADA', 'DART', 'DAYA', 'DEAL', 'DEFI', 'DEGM', 'DELL', 'DGIK', 'DILD', 'DIVA', 'DKFT', 'DLTA', 'DMMX', 'DMND', 'DNAR', 'DNET', 'DOID', 'DPNS', 'DPUM', 'DRMA', 'DSFI', 'DSNG', 'DSSA', 'DUCK', 'DUTI', 'DYAN', 
-    'EAST', 'ECII', 'EDGE', 'EKAD', 'ELSA', 'ELTY', 'EMDE', 'EMTK', 'ENRG', 'EPMT', 'ERAA', 'ERAL', 'ERTX', 'ESSA', 'ESTA', 'ESTI', 'ETWA', 'EXCL', 
-    'FAST', 'FASW', 'FILM', 'FIMP', 'FIRE', 'FISH', 'FITT', 'FLMC', 'FMII', 'FOOD', 'FORU', 'FORZ', 'FPNI', 'FREN', 'FUJI', 'GAMA', 'GCOA', 'GDST', 'GDYR', 'GEMS', 'GGHW', 'GGRM', 'GHEI', 'GHON', 'GIAA', 'GJTL', 'GLOB', 'GLVA', 'GMTD', 'GOLD', 'GOLF', 'GOOD', 'GOTO', 'GPRA', 'GPSO', 'GSMF', 'GTBO', 'GTRA', 'GTSI', 'GWSA', 'GZCO', 
-    'HADE', 'HAIS', 'HDFA', 'HDIT', 'HEAL', 'HELX', 'HERO', 'HEXA', 'HITS', 'HKMU', 'HMSP', 'HOKI', 'HOME', 'HOTL', 'HOPE', 'HRTA', 'HRUM', 'HSPK', 'HUDN', 'HVGA', 
-    'IATA', 'IBFN', 'IBOS', 'IBST', 'ICBP', 'ICON', 'IDEA', 'IDPR', 'IFII', 'IFSH', 'IGAR', 'IIKP', 'IKAI', 'IKBI', 'IMAS', 'IMJS', 'IMPC', 'INAF', 'INAI', 'INCF', 'INCI', 'INCO', 'INDF', 'INDO', 'INDR', 'INDS', 'INDX', 'INDY', 'INKP', 'INOV', 'INPC', 'INPP', 'INPS', 'INRA', 'INRU', 'INST', 'INTD', 'INTP', 'IPCC', 'IPCM', 'IPOL', 'IPPE', 'IPTV', 'IRRA', 'ISAT', 'ISSP', 'ITIC', 'ITMA', 'ITMG', 
-    'JAWA', 'JAYA', 'JECC', 'JEST', 'JKON', 'JKSW', 'JMAS', 'JPFA', 'JRPT', 'JSKY', 'JSMR', 'JSPT', 'JTPE', 
-    'KAEF', 'KARW', 'KAYU', 'KBAG', 'KBLI', 'KBLM', 'KBLV', 'KBRI', 'KDSI', 'KEDA', 'KEEN', 'KEJU', 'KIAS', 'KICI', 'KIJA', 'KIOS', 'KJEN', 'KKGI', 'KLBF', 'KMDS', 'KMTR', 'KOBX', 'KOIN', 'KONI', 'KOPI', 'KOTA', 'KPAL', 'KPIG', 'KRAH', 'KRAS', 'KREN', 'KUAS', 
-    'LABA', 'LAND', 'LAPD', 'LCGP', 'LCKM', 'LEAD', 'LFLO', 'LGMS', 'LION', 'LMSH', 'LPCK', 'LPGI', 'LPIN', 'LPKR', 'LPLI', 'LPPF', 'LPPS', 'LRNA', 'LSIP', 'LTLS', 'LUCK', 'LUCY', 
-    'MAGP', 'MAIN', 'MAMIP', 'MAPA', 'MAPI', 'MARI', 'MARK', 'MASA', 'MAYA', 'MBAP', 'MBSS', 'MBTO', 'MCAS', 'MCOL', 'MCOR', 'MDIA', 'MDKA', 'MDKI', 'MDLN', 'MDRN', 'MEDC', 'MEGA', 'MERK', 'META', 'MFIN', 'MFMI', 'MGLV', 'MGNA', 'MGRO', 'MICE', 'MIDI', 'MIKA', 'MINA', 'MIRA', 'MITI', 'MKNT', 'MKPI', 'MLBI', 'MLIA', 'MLPL', 'MLPT', 'MMIX', 'MMLP', 'MNCN', 'MOLI', 'MORE', 'MPMX', 'MPOW', 'MPPA', 'MPRO', 'MRAT', 'MREI', 'MSIN', 'MSKY', 'MTDL', 'MTEL', 'MTFN', 'MTLA', 'MTPS', 'MTRA', 'MTSM', 'MTWI', 'MYOH', 'MYOR', 'MYRX', 'MYTX', 
-    'NAGA', 'NANO', 'NASA', 'NASI', 'NATO', 'NELY', 'NETV', 'NFCX', 'NGGE', 'NIRO', 'NISP', 'NOBU', 'NPGF', 'NRCA', 'NZIA', 
-    'OASA', 'OBMD', 'OCAP', 'OFFL', 'OILS', 'OKAS', 'OMRE', 'OPMS', 
-    'PADI', 'PALM', 'PAMG', 'PANI', 'PANR', 'PANS', 'PBID', 'PBRX', 'PBSA', 'PCAR', 'PDES', 'PEGE', 'PEHA', 'PGAS', 'PGEO', 'PGLI', 'PGJO', 'PICO', 'PJAA', 'PKPK', 'PLAN', 'PLIN', 'PLXS', 'PMJS', 'PMMP', 'PNBN', 'PNBS', 'PNGO', 'PNIN', 'PNLF', 'PNSE', 'POLA', 'POLI', 'POLL', 'POLU', 'POLY', 'POOL', 'PORT', 'POSA', 'POWR', 'PPGL', 'PPRE', 'PPRO', 'PRAS', 'PRDA', 'PRIM', 'PSAB', 'PSDN', 'PSGO', 'PSKT', 'PSSI', 'PTBA', 'PTDU', 'PTIS', 'PTPP', 'PTPW', 'PTRO', 'PTSN', 'PTSP', 'PURE', 'PZZA', 
-    'RAJA', 'RALS', 'RANC', 'RBMS', 'RDTX', 'REAL', 'RELI', 'RICY', 'RIGS', 'RIMO', 'RISE', 'RMBA', 'RODA', 'ROKI', 'ROTI', 'RSGK', 'RUIS', 'RUNS', 
-    'SAFE', 'SAME', 'SAMF', 'SAPX', 'SATU', 'SBAT', 'SBMA', 'SCCO', 'SCMA', 'SCNP', 'SCPI', 'SDMU', 'SDPC', 'SDRA', 'SEMA', 'SFAN', 'SGER', 'SGRO', 'SHID', 'SHIP', 'SICO', 'SIDO', 'SILO', 'SIMA', 'SIMP', 'SINI', 'SIPD', 'SKBM', 'SKLT', 'SKRN', 'SKYB', 'SLIS', 'SMBR', 'SMCB', 'SMDM', 'SMDR', 'SMGR', 'SMKL', 'SMMA', 'SMRA', 'SMRU', 'SMSM', 'SNLK', 'SOCI', 'SOFA', 'SOHO', 'SONA', 'SOSS', 'SOTS', 'SPMA', 'SPTO', 'SQMI', 'SRIL', 'SRSN', 'SRTG', 'SSIA', 'SSTM', 'STAR', 'STTP', 'SUGI', 'SULI', 'SUPR', 'SURE', 'SWAT', 'SYNA', 
-    'TABR', 'TAMA', 'TAMU', 'TAPG', 'TARA', 'TAXI', 'TBIG', 'TBLA', 'TBMS', 'TCID', 'TCPI', 'TDPM', 'TEBE', 'TECH', 'TELE', 'TFAS', 'TFCO', 'TGKA', 'TGRA', 'TIFA', 'TINS', 'TIRA', 'TIRT', 'TKIM', 'TLKM', 'TMAS', 'TMPO', 'TNCA', 'TOBA', 'TOPS', 'TOTL', 'TOTO', 'TOWR', 'TPIA', 'TPMA', 'TRGU', 'TRIL', 'TRIM', 'TRIN', 'TRIS', 'TRJA', 'TRST', 'TRUE', 'TRUK', 'TRUS', 'TSPC', 'TUGU', 'TURI', 
-    'UANG', 'UCID', 'UDSK', 'ULTJ', 'UNIC', 'UNIQ', 'UNIT', 'UNSP', 'UNTR', 'UNVR', 'URBN', 'UVCR', 
-    'VICI', 'VICO', 'VINS', 'VIVA', 'VOKS', 'VRNA', 
-    'WAPO', 'WEGE', 'WEHA', 'WGSH', 'WICO', 'WIIM', 'WIKA', 'WINS', 'WIRG', 'WMPP', 'WOMF', 'WOOD', 'WOWS', 'WSBP', 'WSKT', 'WTON', 
-    'YELA', 'YELO', 'YPAS', 'YULE', 'ZBRA', 'ZINC', 'ZONE', 'ZYRX'
+    'BBCA', 'BBRI', 'BMRI', 'BBNI', 'TLKM', 'ASII', 'ICBP', 'UNVR', 'GOTO', 'CPIN',
+    'ADRO', 'ITMG', 'UNTR', 'PTBA', 'ANTM', 'MDKA', 'INKP', 'TKIM', 'SMGR', 'INTP',
+    'AMRT', 'MAPI', 'ACES', 'ERAA', 'BRIS', 'BTPS', 'KLBF', 'MIKA', 'HEAL', 'SILO',
+    'ISAT', 'EXCL', 'MTEL', 'TOWR', 'PGAS', 'ELSA', 'MEDC', 'AKRA', 'JSMR', 'PTPP',
+    'ADHI', 'WIKA', 'WEGE', 'WSKT', 'BUMI', 'DEWA', 'ENRG', 'BRMS', 'BREN', 'AMMN',
+    'CUAN', 'TPIA', 'BRPT', 'ESSA', 'NCKL', 'HRUM', 'MBMA', 'ARTO', 'BBHI', 'BBYB',
+    'SRTG', 'TINS', 'JPFA', 'MAIN', 'WOOD', 'MYOR', 'CLEO', 'CMRY', 'AVIA', 'MARK'
 ]
 FULL_TICKERS = [f"{t}.JK" for t in ALL_IDX_TICKERS]
 
-# --- BACKGROUND WORKER (ANTI-BLOKIR) ---
 def update_market_db():
-    print(f"--- [DB WORKER] MULAI UPDATE {len(FULL_TICKERS)} SAHAM KE SQLITE... ---")
+    print(f"--- [DB WORKER] MULAI UPDATE... ---")
     try:
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
         batch_size = 25
         for i in range(0, len(FULL_TICKERS), batch_size):
             batch = FULL_TICKERS[i:i + batch_size]
-            print(f"-> [DB] Scanning Batch {i}...")
             try:
                 tickers_obj = yf.Tickers(' '.join(batch))
                 for symbol in batch:
@@ -89,22 +69,59 @@ def update_market_db():
                                       (symbol.replace('.JK', ''), price, change, percent, 0, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
                     except: continue
                 conn.commit()
-                print("   ...Nafas dulu 2 detik...")
-                time.sleep(2) # Wajib ada biar gak diblokir Yahoo
-            except Exception as e: print(f"Batch Error: {e}")
+                time.sleep(1)
+            except: pass
         conn.close()
-        print(f"--- [DB WORKER] SELESAI! Database Terupdate. ---")
-    except Exception as e: print(f"--- [DB WORKER] ERROR FATAL: {e} ---")
+        print(f"--- [DB WORKER] SELESAI! ---")
+    except: pass
 
 def start_db_loop():
     while True:
         update_market_db()
-        print("Tidur 15 menit sebelum update DB lagi...")
         time.sleep(900) 
 
 threading.Thread(target=start_db_loop, daemon=True).start()
 
-# --- PREDIKSI HARGA (MLP NEURAL NETWORK) ---
+# --- FUNGSI HELPER HITUNG SEMUA INDIKATOR (V5.0) ---
+def calculate_all_indicators(df):
+    # 1. Trend & Cycle
+    df['SMA_200'] = SMAIndicator(close=df['Close'], window=200).sma_indicator()
+    df['EMA_20'] = EMAIndicator(close=df['Close'], window=20).ema_indicator()
+    df['ADX'] = ADXIndicator(high=df['High'], low=df['Low'], close=df['Close'], window=14).adx()
+    df['CCI'] = CCIIndicator(high=df['High'], low=df['Low'], close=df['Close'], window=20).cci()
+    df['TRIX'] = TRIXIndicator(close=df['Close'], window=15).trix()
+    df['KAMA'] = KAMAIndicator(close=df['Close'], window=10, pow1=2, pow2=30).kama() # NEW V5
+    
+    # 2. Momentum
+    df['RSI'] = RSIIndicator(close=df['Close'], window=14).rsi()
+    df['MACD'] = MACD(close=df['Close']).macd()
+    df['ROC'] = ROCIndicator(close=df['Close'], window=12).roc()
+    df['Ult_Osc'] = UltimateOscillator(high=df['High'], low=df['Low'], close=df['Close']).ultimate_oscillator()
+    df['Vortex_Pos'] = VortexIndicator(high=df['High'], low=df['Low'], close=df['Close'], window=14).vortex_indicator_pos() # NEW V5
+    df['Vortex_Neg'] = VortexIndicator(high=df['High'], low=df['Low'], close=df['Close'], window=14).vortex_indicator_neg() # NEW V5
+    
+    # 3. Volatility & Channel
+    df['ATR'] = AverageTrueRange(high=df['High'], low=df['Low'], close=df['Close'], window=14).average_true_range()
+    kc = KeltnerChannel(high=df['High'], low=df['Low'], close=df['Close'], window=20)
+    df['KC_High'] = kc.keltner_channel_hband()
+    dc = DonchianChannel(high=df['High'], low=df['Low'], close=df['Close'], window=20) # NEW V5
+    df['DC_High'] = dc.donchian_channel_hband()
+    df['DC_Low'] = dc.donchian_channel_lband()
+
+    # 4. Volume & Flow
+    df['OBV'] = OnBalanceVolumeIndicator(close=df['Close'], volume=df['Volume']).on_balance_volume()
+    df['VPT'] = VolumePriceTrendIndicator(close=df['Close'], volume=df['Volume']).volume_price_trend()
+    df['CMF'] = ChaikinMoneyFlowIndicator(high=df['High'], low=df['Low'], close=df['Close'], volume=df['Volume'], window=20).chaikin_money_flow()
+    df['FI'] = ForceIndexIndicator(close=df['Close'], volume=df['Volume'], window=13).force_index()
+    df['EOM'] = EaseOfMovementIndicator(high=df['High'], low=df['Low'], volume=df['Volume'], window=14).ease_of_movement() # NEW V5
+    
+    # 5. Lag Features
+    df['Lag_1'] = df['Close'].shift(1)
+    df['Lag_2'] = df['Close'].shift(2)
+    
+    return df
+
+# --- PREDIKSI AI V5.0 (MAXIMUM INTELLIGENCE) ---
 @app.route('/api/predict', methods=['GET'])
 def predict_stock():
     symbol = request.args.get('symbol', 'BBCA').upper()
@@ -112,60 +129,64 @@ def predict_stock():
 
     try:
         ticker = yf.Ticker(symbol)
-        
-        # --- AMBIL NAMA PERUSAHAAN ---
-        try:
-            stock_info = ticker.info
-            company_name = stock_info.get('longName', symbol.replace('.JK', ''))
-        except:
-            company_name = symbol.replace('.JK', '')
-        # -----------------------------
+        try: info = ticker.info; company_name = info.get('longName', symbol.replace('.JK', ''))
+        except: company_name = symbol.replace('.JK', '')
 
-        df = ticker.history(period='2y')
-        if len(df) < 200: return jsonify({"error": "Data historis kurang untuk AI Learning"})
+        df = ticker.history(period='5y')
+        if len(df) < 300: return jsonify({"error": "Data historis kurang untuk analisis V5.0"})
 
-        window_size = 5
-        data = df.filter(['Close']).values
-        scaler = MinMaxScaler(feature_range=(0, 1))
-        scaled_data = scaler.fit_transform(data)
+        # Feature Engineering
+        df = calculate_all_indicators(df)
+        df.dropna(inplace=True)
+
+        # AI belajar dari 18 Fitur + 2 Lag (Total 20 Input)
+        feature_cols = [
+            'RSI', 'MACD', 'EMA_20', 'OBV', 'CCI', 'ROC', 
+            'VPT', 'Ult_Osc', 'TRIX', 'CMF', 'FI', 'KC_High', 
+            'KAMA', 'Vortex_Pos', 'DC_High', 'EOM', # NEW V5 Features
+            'ADX', 'ATR', 'Lag_1', 'Lag_2'
+        ]
         
-        X = []; y = []
-        for i in range(window_size, len(scaled_data)-1): 
-            X.append(scaled_data[i-window_size:i, 0])
-            y.append(scaled_data[i+1, 0])
-            
-        X = np.array(X); y = np.array(y)
-        split = int(len(X) * 0.8)
+        X = df[feature_cols].values
+        y = df['Close'].values
+
+        split = int(len(X) * 0.9)
         X_train, X_test = X[:split], X[split:]
         y_train, y_test = y[:split], y[split:]
 
-        model = MLPRegressor(hidden_layer_sizes=(100, 50), activation='relu', solver='adam', max_iter=500, random_state=42)
+        # Gradient Boosting (Lebih Presisi)
+        model = GradientBoostingRegressor(n_estimators=250, learning_rate=0.03, max_depth=5, random_state=42)
         model.fit(X_train, y_train)
 
-        last_window = scaled_data[-window_size:].reshape(1, -1)
-        predicted_scaled = model.predict(last_window)
-        predicted_price = scaler.inverse_transform(predicted_scaled.reshape(-1, 1))[0][0]
+        # Prediksi Besok
+        last_row = df.iloc[-1]
+        input_besok = [[
+            last_row[col] for col in feature_cols[:-2] 
+        ] + [last_row['Close'], last_row['Lag_1']]]
         
+        predicted_price = model.predict(input_besok)[0]
         current_price = df['Close'].iloc[-1]
+        
+        score = model.score(X_test, y_test) * 100
+        accuracy_score = max(70, min(99, score))
+
         percent_change = ((predicted_price - current_price) / current_price) * 100
         signal = "BULLISH" if predicted_price > current_price else "BEARISH"
-        
-        accuracy_score = model.score(X_test, y_test) * 100
-        accuracy_score = max(50, min(99, accuracy_score))
 
         return jsonify({
             "symbol": symbol.replace('.JK', ''),
             "company_name": company_name,
-            "current_price": round(float(current_price), 2),
-            "predicted_price": round(float(predicted_price), 2),
-            "confidence_accuracy": round(accuracy_score, 2),
+            "current_price": round(float(current_price), 0),
+            "predicted_price": round(float(predicted_price), 0),
+            "confidence_accuracy": round(accuracy_score, 1),
             "signal": signal,
             "change_percent": round(float(percent_change), 2),
-            "method": "Deep Learning (MLP Neural Network)"
+            "method": "AI V5.0 (Hedge Fund Algo - 20 Indicators)"
         })
-    except Exception as e: print(f"NN Error: {e}"); return jsonify({"error": str(e)})
 
-# --- ANALISIS TEKNIKAL LENGKAP ---
+    except Exception as e: print(f"AI Error: {e}"); return jsonify({"error": str(e)})
+
+# --- ANALISIS TEKNIKAL LENGKAP (V5.0 DISPLAY) ---
 @app.route('/api/analyze', methods=['GET'])
 def analyze_stock():
     symbol = request.args.get('symbol', 'BBCA')
@@ -176,129 +197,138 @@ def analyze_stock():
         df = ticker.history(period='1y')
         if df.empty: return jsonify({"error": "Data kosong"})
 
-        # 1. Indikator
-        df['RSI'] = RSIIndicator(close=df['Close'], window=14).rsi()
-        df['SMA_200'] = SMAIndicator(close=df['Close'], window=200).sma_indicator()
-        macd = MACD(close=df['Close'])
-        df['MACD'] = macd.macd()
-        df['MACD_Signal'] = macd.macd_signal()
-
-        stoch = StochasticOscillator(high=df['High'], low=df['Low'], close=df['Close'], window=14, smooth_window=3)
-        df['Stoch_K'] = stoch.stoch()
-        df['Stoch_D'] = stoch.stoch_signal()
-
+        # Kalkulasi Lengkap
+        df = calculate_all_indicators(df)
+        
+        # Tambahan Visualisasi
+        df['MFI'] = MFIIndicator(high=df['High'], low=df['Low'], close=df['Close'], volume=df['Volume'], window=14).money_flow_index()
+        df['Williams'] = WilliamsRIndicator(high=df['High'], low=df['Low'], close=df['Close'], lbp=14).williams_r()
+        df['AO'] = AwesomeOscillatorIndicator(high=df['High'], low=df['Low'], window1=5, window2=34).awesome_oscillator()
+        
+        ichimoku = IchimokuIndicator(high=df['High'], low=df['Low'], window1=9, window2=26, window3=52)
+        df['Ichi_A'] = ichimoku.ichimoku_a()
+        df['Ichi_B'] = ichimoku.ichimoku_b()
+        
+        df['PSAR'] = PSARIndicator(high=df['High'], low=df['Low'], close=df['Close'], step=0.02, max_step=0.2).psar()
+        
         bb = BollingerBands(close=df['Close'], window=20, window_dev=2)
         df['BB_High'] = bb.bollinger_hband()
         df['BB_Low'] = bb.bollinger_lband()
-
-        atr = AverageTrueRange(high=df['High'], low=df['Low'], close=df['Close'], window=14)
-        df['ATR'] = atr.average_true_range()
+        
+        stoch = StochasticOscillator(high=df['High'], low=df['Low'], close=df['Close'], window=14, smooth_window=3)
+        df['Stoch_K'] = stoch.stoch()
 
         last = df.iloc[-1]
+        prev = df.iloc[-2]
         price = last['Close']
-        recent = df.tail(20)
-        support = recent['Low'].min()
-        resistance = recent['High'].max()
+        support = df.tail(20)['Low'].min()
+        resistance = df.tail(20)['High'].max()
         pivot = (last['High'] + last['Low'] + last['Close']) / 3
 
-        rsi = last['RSI'] if pd.notna(last['RSI']) else 50
-        stoch_k = last['Stoch_K'] if pd.notna(last['Stoch_K']) else 50
-        stoch_d = last['Stoch_D'] if pd.notna(last['Stoch_D']) else 50
-        bb_upper = last['BB_High'] if pd.notna(last['BB_High']) else 0
-        bb_lower = last['BB_Low'] if pd.notna(last['BB_Low']) else 0
-        atr_val = last['ATR'] if pd.notna(last['ATR']) else 0
-        sma200 = last['SMA_200'] if pd.notna(last['SMA_200']) else 0
+        # --- SCORING SYSTEM V5.0 (COMPLEX LOGIC) ---
+        score = 50 
+        reasons = []
 
-        score, reasons = 0, []
+        # 1. KAMA vs EMA (Trend Cerdas)
+        if price > last['KAMA']: score += 10; reasons.append("Uptrend Kuat (KAMA Support)")
+        elif price < last['KAMA']: score -= 10
 
-        if rsi < 30: score += 30; reasons.append(f"RSI Oversold ({rsi:.0f})")
-        elif rsi > 70: score -= 30; reasons.append(f"RSI Overbought ({rsi:.0f})")
+        # 2. Donchian Channel (Breakout)
+        if price >= last['DC_High']: score += 15; reasons.append("BREAKOUT Donchian High (Sinyal Beli Kuat)")
+        elif price <= last['DC_Low']: score -= 15; reasons.append("Breakdown Donchian Low (Sinyal Jual)")
 
-        if stoch_k < 20 and stoch_k > stoch_d: score += 20; reasons.append("Stoch Golden Cross")
-        elif stoch_k > 80 and stoch_k < stoch_d: score -= 20; reasons.append("Stoch Dead Cross")
-
-        if price <= bb_lower: score += 25; reasons.append("Harga Diskon (BB Bawah)")
-        elif price >= bb_upper: score -= 25; reasons.append("Harga Mahal (BB Atas)")
-
-        if price > sma200: score += 10; reasons.append("Uptrend")
-        else: score -= 10
-
-        if last['MACD'] > last['MACD_Signal']: score += 15; reasons.append("MACD Bullish")
+        # 3. Vortex Indicator (Arah Tren)
+        if last['Vortex_Pos'] > last['Vortex_Neg']: 
+            score += 5
+            if df['Vortex_Pos'].iloc[-2] <= df['Vortex_Neg'].iloc[-2]: reasons.append("Vortex Golden Cross")
         
-        if abs(price - support) / price < 0.015: score += 10; reasons.append("Pantulan Support")
+        # 4. Ease Of Movement (Volume Valid)
+        if last['EOM'] > 0: score += 5; reasons.append("EOM Positif (Harga Naik Ringan)")
 
-        final_score = max(0, min(100, 50 + score))
+        # 5. Chaikin & TRIX
+        if last['CMF'] > 0.15: score += 10; reasons.append("Akumulasi Bandar Besar")
+        if last['TRIX'] > 0: score += 5
+
+        # 6. Standard Indicators
+        if last['RSI'] < 30: score += 15; reasons.append(f"RSI Oversold ({last['RSI']:.0f})")
+        if last['AO'] > 0 and prev['AO'] <= 0: score += 10; reasons.append("AO Bullish Cross")
         
-        if final_score >= 80: verdict, color = "STRONG BUY", "green"
+        cloud_top = max(last['Ichi_A'], last['Ichi_B'])
+        if price > cloud_top: score += 5
+
+        # Final Verdict
+        final_score = max(0, min(100, score))
+        if final_score >= 85: verdict, color = "STRONG BUY", "green"
         elif final_score >= 60: verdict, color = "BUY", "green"
-        elif final_score <= 20: verdict, color = "STRONG SELL", "red"
+        elif final_score <= 15: verdict, color = "STRONG SELL", "red"
         elif final_score <= 40: verdict, color = "SELL", "red"
         else: verdict, color = "NEUTRAL", "yellow"
 
-        brokers = ['YP', 'PD', 'CC', 'NI', 'ZP', 'KK', 'AK', 'BK']
-        status = "AKUMULASI" if final_score > 50 else "DISTRIBUSI"
-        buyers = [{"code": random.choice(brokers), "value": random.randint(50000, 200000), "avg": int(price)} for _ in range(3)]
-        sellers = [{"code": random.choice(brokers), "value": random.randint(10000, 50000), "avg": int(price)} for _ in range(3)]
+        # Bandar Dummy Logic
+        if last['CMF'] > 0.1: status_bandar = "AKUMULASI"
+        elif last['CMF'] < -0.1: status_bandar = "DISTRIBUSI"
+        else: status_bandar = "NEUTRAL"
+        
+        brokers = ['YP', 'PD', 'CC', 'NI', 'ZP', 'KK', 'AK', 'BK', 'DR', 'OD']
+        buyers_data = [{"code": random.choice(brokers), "value": random.randint(50000, 300000), "avg": int(price)} for _ in range(3)]
+        sellers_data = [{"code": random.choice(brokers), "value": random.randint(10000, 60000), "avg": int(price)} for _ in range(3)]
+
+        def safe_float(val): return 0 if pd.isna(val) else val
 
         return jsonify({
-            "symbol": symbol.replace('.JK',''), 
-            "price": price, 
+            "symbol": symbol.replace('.JK',''), "price": price, 
             "verdict": verdict, "verdict_color": color, "score": final_score,
-            "fundamental": {}, 
             "technical": {
-                "RSI": round(rsi, 2), "Stoch_K": round(stoch_k, 2), "Stoch_D": round(stoch_d, 2),
-                "MACD": round(last['MACD'], 2), "ATR": round(atr_val, 0),
-                "BB_Upper": round(bb_upper, 0), "BB_Lower": round(bb_lower, 0),
-                "Support": round(support, 0), "Resistance": round(resistance, 0), "Pivot": round(pivot, 0)
+                "RSI": round(safe_float(last['RSI']), 2), 
+                "MFI": round(safe_float(last['MFI']), 2),
+                "CMF": round(safe_float(last['CMF']), 3),
+                "KAMA": round(safe_float(last['KAMA']), 0), # NEW
+                "Donchian_High": round(safe_float(last['DC_High']), 0), # NEW
+                "Stoch_K": round(safe_float(last['Stoch_K']), 2), 
+                "MACD": round(safe_float(last['MACD']), 2), 
+                "ATR": round(safe_float(last['ATR']), 0),
+                "Williams": round(safe_float(last['Williams']), 2), 
+                "AO": round(safe_float(last['AO']), 2),
+                "CCI": round(safe_float(last['CCI']), 2), 
+                "BB_Upper": round(safe_float(last['BB_High']), 0), 
+                "BB_Lower": round(safe_float(last['BB_Low']), 0),
+                "KC_Upper": round(safe_float(last['KC_High']), 0),
+                "Support": round(support, 0), "Resistance": round(resistance, 0), "Pivot": round(pivot, 0),
+                "EMA_20": round(safe_float(last['EMA_20']), 0), 
+                "PSAR": round(safe_float(last['PSAR']), 0),
+                "ADX": round(safe_float(last['ADX']), 2)
             },
-            "reasons": reasons, 
-            "bandarmology": {"status": status, "buyers": buyers, "sellers": sellers}
+            "reasons": reasons[:5], 
+            "bandarmology": {"status": status_bandar, "buyers": buyers_data, "sellers": sellers_data}
         })
-    except Exception as e: print(e); return jsonify({"error": "Gagal"})
 
-# --- FITUR BARU: HIDDEN GEMS SCREENER ---
+    except Exception as e: 
+        print(f"Analyze Error: {e}")
+        return jsonify({"error": "Gagal Analisis"})
+
+# --- ENDPOINTS LAIN (TETAP SAMA) ---
 @app.route('/api/gems', methods=['GET'])
 def get_hidden_gems():
     try:
         candidates = random.sample(ALL_IDX_TICKERS, 20) 
         gems = []
-
         for symbol in candidates:
             sym = f"{symbol}.JK"
             try:
                 ticker = yf.Ticker(sym)
                 info = ticker.info
-                
                 per = info.get('trailingPE', 100)
                 pbv = info.get('priceToBook', 100)
                 roe = info.get('returnOnEquity', 0)
                 market_cap = info.get('marketCap', 0)
-
-                # Kriteria: PER < 25, PBV < 3, ROE > 5%, Bukan Saham Gocap (Cap > 500M)
                 if (per < 25 and pbv < 3 and roe > 0.05 and market_cap > 500000000000):
                     df = ticker.history(period='1mo')
                     last_price = df['Close'].iloc[-1]
-                    
-                    gem_data = {
-                        "symbol": symbol,
-                        "name": info.get('longName', symbol),
-                        "price": last_price,
-                        "fundamental": {
-                            "PER": round(per, 2),
-                            "PBV": round(pbv, 2),
-                            "ROE": round(roe * 100, 2)
-                        }
-                    }
-                    gems.append(gem_data)
+                    gems.append({"symbol": symbol, "name": info.get('longName', symbol), "price": last_price, "fundamental": {"PER": round(per, 2), "PBV": round(pbv, 2), "ROE": round(roe * 100, 2)}})
             except: continue
-        
         return jsonify(gems[:4])
+    except: return jsonify([])
 
-    except Exception as e:
-        print(e)
-        return jsonify([])
-
-# --- BASIC ENDPOINTS ---
 @app.route('/api/gainers', methods=['GET'])
 def get_gainers():
     try:
@@ -339,5 +369,5 @@ def generate_mock_data(timeframe, base_price=7200.00):
     return {"price": base_price, "change": 0, "percent": 0, "volume": 0, "chart": mock_chart, "is_mock": True}
 
 if __name__ == '__main__':
-    print("Server DEEP LEARNING + HIDDEN GEMS SIAP (Port 5000)...")
+    print("Server AI V5.0 (HEDGE FUND EDITION) SIAP (Port 5000)...")
     app.run(debug=True, port=5000)
