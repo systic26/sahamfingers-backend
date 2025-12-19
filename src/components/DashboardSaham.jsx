@@ -7,7 +7,7 @@ import {
   Gem, Mail, Info, ShieldCheck, HelpCircle, Layers, Zap, BarChart3, BookOpen
 } from 'lucide-react'; 
 import Sidebar from './Sidebar';
-import AdUnit from './components/AdUnit'; // Pastikan path-nya benar
+import AdUnit from './AdUnit'; // Pastikan path-nya benar
 
 // --- HALAMAN PANDUAN & EDUKASI (NEW FEATURE) ---
 const HelpPage = () => (
