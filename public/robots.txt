@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Sitemaps membantu Google nemuin halaman lo
+Sitemap: https://systicco.my.id/sitemap.xml
