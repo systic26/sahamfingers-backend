@@ -27,7 +27,7 @@ const DashboardSaham = () => {
   const fetchMarketData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://127.0.0.1:5000/api/stock?symbol=${activeTab === 'screener' ? searchInput || symbol : symbol}&timeframe=${timeframe}`);
+      const response = await axios.get(`https://systicco-api-saham-pro.hf.space/api/stock?symbol=${activeTab === 'screener' ? searchInput || symbol : symbol}&timeframe=${timeframe}`);
       if (response.data) setMarketData(response.data);
     } catch (error) { console.error("Error Market:", error); }
     setLoading(false);
@@ -36,7 +36,7 @@ const DashboardSaham = () => {
   const fetchGainers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://127.0.0.1:5000/api/gainers`);
+      const response = await axios.get(`https://systicco-api-saham-pro.hf.space/api/gainers`);
       if (response.data) setGainers(response.data);
     } catch (error) { console.error("Error Gainers:", error); }
     setLoading(false);
@@ -45,7 +45,7 @@ const DashboardSaham = () => {
   const fetchGems = async () => {
     setLoading(true);
     try {
-        const response = await axios.get(`http://127.0.0.1:5000/api/gems`);
+        const response = await axios.get(`https://systicco-api-saham-pro.hf.space/api/gems`);
         if (response.data) setGems(response.data);
     } catch (error) { console.error("Error Gems:", error); }
     setLoading(false);
@@ -58,10 +58,10 @@ const DashboardSaham = () => {
     
     try {
       const targetSymbol = searchInput || symbol;
-      const resAnalyze = await axios.get(`http://127.0.0.1:5000/api/analyze?symbol=${targetSymbol}`);
+      const resAnalyze = await axios.get(`https://systicco-api-saham-pro.hf.space/api/analyze?symbol=${targetSymbol}`);
       if (resAnalyze.data) setAiData(resAnalyze.data);
 
-      const resPredict = await axios.get(`http://127.0.0.1:5000/api/predict?symbol=${targetSymbol}`);
+      const resPredict = await axios.get(`https://systicco-api-saham-pro.hf.space/api/predict?symbol=${targetSymbol}`);
       if (resPredict.data) setPrediction(resPredict.data);
 
     } catch (error) { console.error("Error AI:", error); }
