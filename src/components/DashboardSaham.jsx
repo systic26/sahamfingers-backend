@@ -7,6 +7,7 @@ import {
   Gem, Mail, Info, ShieldCheck, HelpCircle, Layers, Zap, BarChart3, BookOpen
 } from 'lucide-react'; 
 import Sidebar from './Sidebar';
+import AdUnit from './components/AdUnit'; // Pastikan path-nya benar
 
 // --- HALAMAN PANDUAN & EDUKASI (NEW FEATURE) ---
 const HelpPage = () => (
@@ -274,6 +275,13 @@ const DashboardSaham = () => {
             </div>
         </div>
 
+        {/* --- IKLAN ADSENSE UTAMA (Global) --- */}
+        {/* Unit iklan ini akan muncul di semua tab, tepat di bawah header */}
+        <div className="mb-6">
+            <AdUnit slotId="5236520310" />
+ {/* Ganti ID ini dengan data-ad-slot dari akun AdSense lo nanti */}
+        </div>
+
         {activeTab === 'market' && (
             <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-8">
                 <div className="flex justify-between items-center mb-6">
@@ -538,7 +546,7 @@ const DashboardSaham = () => {
              <div className="text-center py-20 text-gray-400">
                  <Cpu size={64} className="mx-auto mb-4 opacity-30 text-indigo-300"/>
                  <h3 className="text-lg font-bold text-gray-500">AI System Ready</h3>
-                 <p className="text-sm">Ketik kode saham di atas untuk mengaktifkan "God Mode Analysis".</p>
+                 <p className="text-sm">Ketik kode saham di atas untuk mengaktifkan "Mode Analysis".</p>
              </div>
         )}
 
